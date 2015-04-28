@@ -1,5 +1,5 @@
 CONFIG = {
-    'consumer_key': '',
+    'consumer_key': '1',
     'consumer_secret': '',
     'access_token': '',
     'access_token_secret': '',
