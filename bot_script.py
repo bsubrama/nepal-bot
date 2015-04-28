@@ -13,7 +13,8 @@ api = tweepy.API(auth)
 class CustomStreamListener(tweepy.StreamListener):
   def on_status(self, status):
     #TODO(bharadwajs) Do some filtering here.
-    if any(word in status.text for word in config.CONFIG['keywords']):
+    if (any(word in status.text for word in config.CONFIG['keywords']) and
+        not any(word in status.text for word in config.CONFIG['excluded_keywords'])):
       print status.text
     #api.retweet(status.id)
 
