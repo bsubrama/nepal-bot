@@ -5,5 +5,8 @@ CONFIG = {
     'access_token_secret': '',
     'topics': ['#nepalquake', '#nepalquakerelief', '#nepalearthquake',
                '#nepalquakerescue', '#nepalrescue', '#act4quake', 
-               '#helpnepal']
+               '#helpnepal'],
+    'keywords': ['food','tent','water','medicine','danger','urgent',
+                 'emergency','assist','necessary','medicines','rescue',
+                 'need','clothe','clothes','volunteer','relief','meds','aid']
 }
