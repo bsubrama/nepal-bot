@@ -38,7 +38,7 @@ class CustomStreamListener(tweepy.StreamListener):
       except tweepy.TweepError:
         print ' '.join(['[' + time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime()) + ']',
                         'tried retweeting previously retweeted id ',
-                        status.id])
+                        str(status.id)])
       sys.stdout.flush()
 
 
