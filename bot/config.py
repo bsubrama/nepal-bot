@@ -5,7 +5,9 @@ CONFIG = {
     'access_token_secret': '',
     'topics': ['#nepalquake', '#nepalquakerelief', '#nepalearthquake',
                '#nepalquakerescue', '#nepalrescue', '#act4quake',
-               '#helpnepal'],
+               '#helpnepal', '#earthquake', 'sindhupalchowk', 'sindhupalchok',
+               'kathmandu', 'dhading', 'rasuwa', 'gorkha', 'nuwakot', 'ramechapp',
+               'emergency'],
     'excluded_keywords': ['donate', 'report', 'follow', 'damage', 'organization',
                           'say', 'thoughts', 'prayers', 'efforts', 'learn',
                           'rescued', 'recovered', 'evacuated', 'increase', 'rise',
@@ -15,5 +17,6 @@ CONFIG = {
                  'emergency','assist','necessary','medicines','rescue',
                  'need','clothe','clothes','volunteer','relief','meds','aid', 'seeking',
                  'hospital', 'immediate', 'sindhupalchowk', 'sindhupalchok', 'kathmandu',
-                 ]
+                 'transport', 'dhading', 'rasuwa', 'gorkha', 'contact', 'nuwakot', 'send',
+                 'ramechapp', ]
 }
