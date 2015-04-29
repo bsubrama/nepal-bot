@@ -10,6 +10,8 @@ import tweepy
 import config
 import time
 
+from multiprocessing import Pool
+
 auth = tweepy.OAuthHandler(config.CONFIG['consumer_key'], config.CONFIG['consumer_secret'])
 auth.set_access_token(config.CONFIG['access_token'], config.CONFIG['access_token_secret'])
 api = tweepy.API(auth)
@@ -18,6 +20,8 @@ mc = memcache.Client(['127.0.0.1:11211'], debug=0)
 
 def ts():
   return '[' + time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime()) + ']'
+
+
 
 class CustomStreamListener(tweepy.StreamListener):
   def get_key(self, text):
@@ -37,8 +41,8 @@ class CustomStreamListener(tweepy.StreamListener):
       try:
         api.retweet(status.id)
         print ts(), status.text.encode('utf-8')
-      except tweepy.TweepError:
-        print ts(), 'tried retweeting previously retweeted id ', str(status.id)
+      except tweepy.TweepError as e:
+        print ts(), e
       sys.stdout.flush()
 
 
