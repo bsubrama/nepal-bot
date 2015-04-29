@@ -30,7 +30,7 @@ class CustomStreamListener(tweepy.StreamListener):
         any(word in status.text for word in config.CONFIG['keywords']) and
         not any(word in status.text for word in config.CONFIG['excluded_keywords'])):
       mc.set(key, status)
-      print status.text
+      print status.text.encode('utf-8')
       try:
         api.retweet(status.id)
       except tweepy.TweepError:
