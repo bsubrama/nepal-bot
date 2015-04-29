@@ -33,10 +33,10 @@ class CustomStreamListener(tweepy.StreamListener):
       mc.set(key, status)
       try:
         api.retweet(status.id)
-        print ('[' + strftime("%Y-%m-%d %H:%M:%S", time.gmtime()) + ']',
+        print ('[' + time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime()) + ']',
                status.text.encode('utf-8'))
       except tweepy.TweepError:
-        print ('[' + strftime("%Y-%m-%d %H:%M:%S", time.gmtime()) + ']',
+        print ('[' + time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime()) + ']',
                'tried retweeting previously retweeted id ', status.id)
       sys.stdout.flush()
 
