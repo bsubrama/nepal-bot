@@ -3,6 +3,7 @@ CONFIG = {
     'consumer_secret': '',
     'access_token': '',
     'access_token_secret': '',
+    'tweets_per_hour': 100,
     'topics': ['#nepalquake', '#nepalquakerelief', '#nepalearthquake',
                '#nepalquakerescue', '#nepalrescue', '#act4quake',
                '#helpnepal', '#earthquake', 'sindhupalchowk', 'sindhupalchok',

@@ -1,5 +1,6 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
+import signal
 import sys
 
 sys.path.insert(0, 'lib')
@@ -10,7 +11,7 @@ import tweepy
 import config
 import time
 
-from multiprocessing import Pool
+from multiprocessing import Process, Queue
 
 auth = tweepy.OAuthHandler(config.CONFIG['consumer_key'], config.CONFIG['consumer_secret'])
 auth.set_access_token(config.CONFIG['access_token'], config.CONFIG['access_token_secret'])
@@ -18,12 +19,29 @@ api = tweepy.API(auth)
 
 mc = memcache.Client(['127.0.0.1:11211'], debug=0)
 
+queue = Queue()
+
 def ts():
   return '[' + time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime()) + ']'
 
-
+def retweet(queue):
+  for tweet_num, status in iter(queue.get, 'STOP'):
+    try:
+      api.retweet(status.id)
+      print ts(), 'tweeted ', str(status.id), status.text.encode('utf-8'), ' tweet_num:', str(tweet_num)
+      time.sleep(3600/config.CONFIG['tweets_per_hour'])
+    except tweepy.TweepError as e:
+      print ts(), e
+    sys.stdout.flush()
+  queue.close()
+  return True
 
 class CustomStreamListener(tweepy.StreamListener):
+
+  def __init__(self):
+    tweepy.StreamListener.__init__(self)
+    self.scheduled = 0
+
   def get_key(self, text):
     sha = hashlib.sha1(text.encode('utf-8'))
     return sha.hexdigest()
@@ -37,12 +55,9 @@ class CustomStreamListener(tweepy.StreamListener):
         any(word in status.text for word in config.CONFIG['keywords']) and
         not any(word in status.text for word in config.CONFIG['excluded_keywords'])):
       mc.set(key, status)
-      print ts(), 'tweet matched', ','.join([word for word in config.CONFIG['keywords']  if word in status.text])
-      try:
-        api.retweet(status.id)
-        print ts(), status.text.encode('utf-8')
-      except tweepy.TweepError as e:
-        print ts(), e
+      self.scheduled += 1
+      print ts(), 'scheduling tweet id', str(status.id), 'matching', ','.join([word for word in config.CONFIG['keywords']  if word in status.text]), 'as tweet_num:', self.scheduled
+      queue.put((self.scheduled, status))
       sys.stdout.flush()
 
 
@@ -54,5 +69,21 @@ class CustomStreamListener(tweepy.StreamListener):
     print >> sys.stderr, 'Timeout...'
     return True
 
+original_sigint_handler = signal.getsignal(signal.SIGINT)
+
+def sigint_handler(sig, frame):
+  signal.signal(signal.SIGINT, original_sigint_handler)
+  print 'new sigint handler caught'
+  queue.put('STOP')
+  sys.exit(0)
+
+signal.signal(signal.SIGINT, sigint_handler)
+
+print 'starting retweeter'
+retweeter = Process(target=retweet, args=(queue,))
+retweeter.start()
+
 sapi = tweepy.streaming.Stream(auth, CustomStreamListener())
 sapi.filter(track=config.CONFIG['topics'])
+
+retweeter.join()
