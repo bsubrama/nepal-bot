@@ -33,7 +33,7 @@ class CustomStreamListener(tweepy.StreamListener):
         any(word in status.text for word in config.CONFIG['keywords']) and
         not any(word in status.text for word in config.CONFIG['excluded_keywords'])):
       mc.set(key, status)
-      print ts(), 'tweet matched', ','.join([word in status.text for word in config.CONFIG['keywords'])
+      print ts(), 'tweet matched', ','.join([word in status.text for word in config.CONFIG['keywords']])
       try:
         api.retweet(status.id)
         print ts(), status.text.encode('utf-8')
