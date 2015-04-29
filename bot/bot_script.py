@@ -8,6 +8,7 @@ import hashlib
 import memcache
 import tweepy
 import config
+import time
 
 auth = tweepy.OAuthHandler(config.CONFIG['consumer_key'], config.CONFIG['consumer_secret'])
 auth.set_access_token(config.CONFIG['access_token'], config.CONFIG['access_token_secret'])
@@ -30,11 +31,14 @@ class CustomStreamListener(tweepy.StreamListener):
         any(word in status.text for word in config.CONFIG['keywords']) and
         not any(word in status.text for word in config.CONFIG['excluded_keywords'])):
       mc.set(key, status)
-      print status.text.encode('utf-8')
       try:
         api.retweet(status.id)
+        print ('[' + strftime("%Y-%m-%d %H:%M:%S", time.gmtime()) + ']',
+               status.text.encode('utf-8'))
       except tweepy.TweepError:
-        print 'tried retweeting previously retweeted id ', status.id
+        print ('[' + strftime("%Y-%m-%d %H:%M:%S", time.gmtime()) + ']',
+               'tried retweeting previously retweeted id ', status.id)
+      sys.stdout.flush()
 
 
   def on_error(self, status_code):
