@@ -1,2 +1,7 @@
 lib/*
+bot/lib/*
+admin/lib/*
 *.pyc
+bot/*.pyc
+admin/*.pyc
+admin/*/*.pyc
