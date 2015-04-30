@@ -57,12 +57,13 @@ class CustomStreamListener(tweepy.StreamListener):
     key = self.get_key(status.text) + '-text'
     prev_status = mc.get(key)
 
-    if (not prev_status and
+    if (status.user.screen_name not in secrets.keys() and
+        not prev_status and
         any(word in status.text for word in config.CONFIG['keywords']) and
         not any(word in status.text for word in config.CONFIG['excluded_keywords'])):
       mc.set(key, status)
       self.scheduled += 1
-      print ts(), 'scheduling tweet id', str(status.id), 'matching', ','.join([word for word in config.CONFIG['keywords']  if word in status.text]), 'as tweet_num:', self.scheduled
+      print ts(), 'scheduling tweet_id', str(status.id), ' from ', status.user.screen_name, ' matching ', ','.join([word for word in config.CONFIG['keywords']  if word in status.text]), 'as tweet_num:', self.scheduled
       queue.put((self.scheduled, status))
       sys.stdout.flush()
 

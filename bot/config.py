@@ -23,7 +23,7 @@ CONFIG = {
                           'say', 'thoughts', 'prayers', 'efforts', 'learn',
                           'rescued', 'recovered', 'evacuated', 'increase', 'rise',
                           'death toll', 'recovery', 'bjp', 'tells', 'prayer', 'proud',
-                          'struggles', 'solidarity', 'baltimore'],
+                          'struggles', 'solidarity', 'baltimore', 'beef'],
     'keywords': ['food','tent','water','medicine','danger','urgent',
                  'emergency','assist','necessary','medicines','rescue',
                  'need','clothe','clothes','volunteer','relief','meds','aid', 'seeking',
