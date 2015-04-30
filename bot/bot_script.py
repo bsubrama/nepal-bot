@@ -57,7 +57,7 @@ class CustomStreamListener(tweepy.StreamListener):
     key = self.get_key(status.text) + '-text'
     prev_status = mc.get(key)
 
-    if (status.user.screen_name not in secrets.keys() and
+    if (status.user.screen_name not in apis.keys() and
         not prev_status and
         any(word in status.text for word in config.CONFIG['keywords']) and
         not any(word in status.text for word in config.CONFIG['excluded_keywords'])):
