@@ -19,7 +19,7 @@ for name, secrets in config.CONFIG['accounts'].iteritems():
     auth.set_access_token(secrets['access_token'], secrets['access_token_secret'])
     api = tweepy.API(auth)
     apis[name] = {
-        'secrets': secrets
+        'secrets': secrets,
         'auth': auth,
         'api': api
     }
@@ -31,12 +31,12 @@ queue = Queue()
 def ts():
   return '[' + time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime()) + ']'
 
-def retweet(queue, api, name):
+def retweet(queue, name, api, tweets_per_hour):
   for tweet_num, status in iter(queue.get, 'STOP'):
     try:
       api.retweet(status.id)
       print ts(), '@' + name, 'tweeted ', str(status.id), status.text.encode('utf-8'), ' tweet_num:', str(tweet_num)
-      time.sleep(3600/config.CONFIG['tweets_per_hour'])
+      time.sleep(3600/tweets_per_hour)
     except tweepy.TweepError as e:
       print ts(), e
     sys.stdout.flush()
@@ -87,7 +87,7 @@ signal.signal(signal.SIGINT, sigint_handler)
 print 'starting retweeters'
 retweeters = {}
 for name, entry in apis.iteritems():
-    retweeters[name] = Process(target=retweet, args=(queue, name, entry['api']))
+    retweeters[name] = Process(target=retweet, args=(queue, name, entry['api'], entry['secrets']['tweets_per_hour']))
     retweeters[name].start()
 
 auth = apis.values()[0]['auth']
