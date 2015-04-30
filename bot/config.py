@@ -1,9 +1,20 @@
 CONFIG = {
-    'consumer_key': '',
-    'consumer_secret': '',
-    'access_token': '',
-    'access_token_secret': '',
-    'tweets_per_hour': 100,
+    'accounts': {
+	'nepalrisesmod': {
+            'consumer_key': '',
+            'consumer_secret': '',
+            'access_token': '',
+            'access_token_secret': '',
+            'tweets_per_hour': 100,
+         },
+	'nprisesmod1': {
+            'consumer_key': '',
+            'consumer_secret': '',
+            'access_token': '',
+            'access_token_secret': '',
+            'tweets_per_hour': 100,
+         },
+    },
     'topics': ['#nepalquake', '#nepalquakerelief', '#nepalearthquake',
                '#nepalquakerescue', '#nepalrescue', '#act4quake',
                '#helpnepal', '#earthquake', 'sindhupalchowk', 'sindhupalchok',

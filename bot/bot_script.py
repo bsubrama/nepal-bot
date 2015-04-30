@@ -13,9 +13,16 @@ import time
 
 from multiprocessing import Process, Queue
 
-auth = tweepy.OAuthHandler(config.CONFIG['consumer_key'], config.CONFIG['consumer_secret'])
-auth.set_access_token(config.CONFIG['access_token'], config.CONFIG['access_token_secret'])
-api = tweepy.API(auth)
+apis = {}
+for name, secrets in config.CONFIG['accounts'].iteritems():
+    auth = tweepy.OAuthHandler(secrets['consumer_key'], secrets['consumer_secret'])
+    auth.set_access_token(secrets['access_token'], secrets['access_token_secret'])
+    api = tweepy.API(auth)
+    apis[name] = {
+        'secrets': secrets
+        'auth': auth,
+        'api': api
+    }
 
 mc = memcache.Client(['127.0.0.1:11211'], debug=0)
 
@@ -24,11 +31,11 @@ queue = Queue()
 def ts():
   return '[' + time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime()) + ']'
 
-def retweet(queue):
+def retweet(queue, api, name):
   for tweet_num, status in iter(queue.get, 'STOP'):
     try:
       api.retweet(status.id)
-      print ts(), 'tweeted ', str(status.id), status.text.encode('utf-8'), ' tweet_num:', str(tweet_num)
+      print ts(), '@' + name, 'tweeted ', str(status.id), status.text.encode('utf-8'), ' tweet_num:', str(tweet_num)
       time.sleep(3600/config.CONFIG['tweets_per_hour'])
     except tweepy.TweepError as e:
       print ts(), e
@@ -47,7 +54,6 @@ class CustomStreamListener(tweepy.StreamListener):
     return sha.hexdigest()
 
   def on_status(self, status):
-    #TODO(bharadwajs) Do some filtering here.i
     key = self.get_key(status.text) + '-text'
     prev_status = mc.get(key)
 
@@ -59,7 +65,6 @@ class CustomStreamListener(tweepy.StreamListener):
       print ts(), 'scheduling tweet id', str(status.id), 'matching', ','.join([word for word in config.CONFIG['keywords']  if word in status.text]), 'as tweet_num:', self.scheduled
       queue.put((self.scheduled, status))
       sys.stdout.flush()
-
 
   def on_error(self, status_code):
     print >> sys.stderr, 'Encountered error with status code:', status_code
@@ -79,11 +84,15 @@ def sigint_handler(sig, frame):
 
 signal.signal(signal.SIGINT, sigint_handler)
 
-print 'starting retweeter'
-retweeter = Process(target=retweet, args=(queue,))
-retweeter.start()
+print 'starting retweeters'
+retweeters = {}
+for name, entry in apis.iteritems():
+    retweeters[name] = Process(target=retweet, args=(queue, name, entry['api']))
+    retweeters[name].start()
 
+auth = apis.values()[0]['auth']
 sapi = tweepy.streaming.Stream(auth, CustomStreamListener())
 sapi.filter(track=config.CONFIG['topics'])
 
-retweeter.join()
+for name, process in retweeters.iteritems():
+    process.join()
