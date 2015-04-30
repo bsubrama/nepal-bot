@@ -27,7 +27,7 @@ CONFIG = {
     'keywords': ['food','tent','water','medicine','danger','urgent',
                  'emergency','assist','necessary','medicines','rescue',
                  'need','clothe','clothes','volunteer','relief','meds','aid', 'seeking',
-                 'hospital', 'immediate', 'sindhupalchowk', 'sindhupalchok', 'kathmandu',
+                 'hospital', 'immediate', 'sindhupalchowk', 'sindhupalchok',
                  'transport', 'dhading', 'rasuwa', 'gorkha', 'contact', 'nuwakot', 'send',
                  'ramechapp', ]
 }
