@@ -24,6 +24,6 @@ def InitializeTwitterAPI(secrets):
         'api': api
     }
 
-def get_key(self, text):
+def get_key(text):
     sha = hashlib.sha1(text.encode('utf-8'))
     return sha.hexdigest()

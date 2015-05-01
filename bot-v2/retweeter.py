@@ -15,6 +15,8 @@ import config
 import util
 import argparse
 import logger
+import pickle
+import time
 
 #def retweet(queue, name, api, tweets_per_hour):
 #  for tweet_num, status in iter(queue.get, 'STOP'):
@@ -33,10 +35,10 @@ parser.add_argument('--handle', type=str, help='The handle to retweet the incomi
 parser.add_argument('--tweets_per_hour', type=int, help='The number of tweets to retweet per hour')
 
 # ch = tweets, body = (tweet_num, status)
-def _get_callback(api):
+def _get_callback(args, api):
     def _callback(ch, method, properties, body):
-        print '[x] Received %s', (body,)
-        tweet_num, status = body
+        tweet_num, status = pickle.loads(body)
+        logger.log('[x] Received tweet_num=%d' % (tweet_num,))
         try:
           api['api'].retweet(status.id)
           logger.log(' '.join(['@' + args.handle,
@@ -60,7 +62,7 @@ def main(args):
         pika.ConnectionParameters(host=config.CONFIG['rabbitmq_host']))
     channel = connection.channel()
     channel.queue_declare(queue=config.CONFIG['rabbitmq_queue'], durable=True)
-    channel.basic_consume(_get_callback(api), queue=config.CONFIG['rabbitmq_queue'])
+    channel.basic_consume(_get_callback(args, api), queue=config.CONFIG['rabbitmq_queue'])
     channel.start_consuming()
 
 if __name__ == '__main__':

@@ -20,6 +20,7 @@ import time
 import pika
 import logger
 import requests
+import pickle
 
 class CustomStreamListener(tweepy.StreamListener):
 
@@ -33,7 +34,7 @@ class CustomStreamListener(tweepy.StreamListener):
     key = util.get_key(status.text) + '-text'
     prev_status = self.cache.get(key)
 
-    if (status.user.screen_name not in apis.keys() and
+    if (status.user.screen_name not in config.CONFIG['excluded_accounts'] and
         not prev_status and
         any(word in status.text for word in config.CONFIG['keywords']) and
         not any(word in status.text
@@ -44,11 +45,11 @@ class CustomStreamListener(tweepy.StreamListener):
                            'from', status.user.screen_name,
                            'matching', ','.join([word for word in config.CONFIG['keywords'] 
                                                 if word in status.text]),
-                           'as tweet_num:', self.tweet_num]))
+                           'as tweet_num:', str(self.tweet_num)]))
 
       self.channel.basic_publish(exchange='',
                                  routing_key=config.CONFIG['rabbitmq_queue'],
-                                 body=(self.tweet_num, status),
+                                 body=pickle.dumps((self.tweet_num, status)),
                                  properties=pika.BasicProperties(delivery_mode=2))
       sys.stdout.flush()
 
