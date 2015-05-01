@@ -1,7 +1,9 @@
 lib/*
 bot/lib/*
+bot-v2/lib/*
 admin/lib/*
 *.pyc
 bot/*.pyc
+bot-v2/*.pyc
 admin/*.pyc
 admin/*/*.pyc
