@@ -4,7 +4,6 @@
 stream_listener.py
 
 Created by Brado Subramanian on 2015-04-30.
-Copyright (c) 2015 __MyCompanyName__. All rights reserved.
 """
 
 import sys
@@ -14,7 +13,6 @@ sys.path.insert(0, 'lib')
 import hashlib
 import memcache
 import tweepy
-import config
 import util
 import time
 import pika
@@ -24,31 +22,48 @@ import pickle
 
 class CustomStreamListener(tweepy.StreamListener):
 
-  def __init__(self, cache, channel):
+  def __init__(self, account_config, memcache_config, rabbitmq_config, filter_config):
     tweepy.StreamListener.__init__(self)
     self.tweet_num = 0
-    self.cache = cache
-    self.channel = channel
+    self.filter_config = filter_config
+    
+    # Initialize API
+    self.api = util.InitializeTwitterAPI(account_config)
+    self.auth = self.api['auth']
+    self.account_config = account_config
+
+    # Initialize memcache
+    logger.log('Initializing memcache client')
+    self.cache = memcache.Client([memcache_config['server'],], debug=0)
+    self.memcache_config = memcache_config
+
+    # Initialize RabbitMQ
+    logger.log('Initializing RabbitMQ queue')
+    self.connection = pika.BlockingConnection(
+        pika.ConnectionParameters(host=rabbitmq_config['host']))
+    self.channel = self.connection.channel()
+    self.channel.queue_declare(queue=rabbitmq_config['queue'], durable=True)
+    self.rabbitmq_config = rabbitmq_config
 
   def on_status(self, status):
     key = util.get_key(status.text) + '-text'
     prev_status = self.cache.get(key)
 
-    if (status.user.screen_name not in config.CONFIG['excluded_accounts'] and
+    if (status.user.screen_name not in self.filter_config['excluded_accounts'] and
         not prev_status and
-        any(word in status.text for word in config.CONFIG['keywords']) and
+        any(word in status.text for word in self.filter_config['keywords']) and
         not any(word in status.text
-                for word in config.CONFIG['excluded_keywords'])):
+                for word in self.filter_config['excluded_keywords'])):
       self.cache.set(key, status)
       self.tweet_num += 1
       logger.log(' '.join(['scheduling tweet_id', str(status.id),
                            'from', status.user.screen_name,
-                           'matching', ','.join([word for word in config.CONFIG['keywords'] 
+                           'matching', ','.join([word for word in self.filter_config['keywords'] 
                                                 if word in status.text]),
                            'as tweet_num:', str(self.tweet_num)]))
 
       self.channel.basic_publish(exchange='',
-                                 routing_key=config.CONFIG['rabbitmq_queue'],
+                                 routing_key=self.rabbitmq_config['queue'],
                                  body=pickle.dumps((self.tweet_num, status)),
                                  properties=pika.BasicProperties(delivery_mode=2))
       sys.stdout.flush()
@@ -61,31 +76,19 @@ class CustomStreamListener(tweepy.StreamListener):
     logger.log('Timeout...')
     return True
 
-def main():
+  def start(self):
+      try:
+          logger.log('Starting to listen')
+          sapi = tweepy.streaming.Stream(self.auth, self)
+          sapi.filter(track=self.filter_config['topics'])
+      except requests.ConnectionError as e:
+          logger.log(e)
+
+def run(account_config, memcache_config, rabbitmq_config, filter_config):
     logger.log('Initializing stream listener')
-    
-    # Initialize API
-    api = util.InitializeTwitterAPI(config.CONFIG['accounts'].values()[0])
-    auth = api['auth']
-    
-    # Initialize memcache
-    logger.log('Initializing memcache client')
-    mc = memcache.Client([config.CONFIG['memcache_server']], debug=0)
-    
-    # Initialize RabbitMQ
-    logger.log('Initializing RabbitMQ queue')
-    connection = pika.BlockingConnection(
-        pika.ConnectionParameters(host=config.CONFIG['rabbitmq_host']))
-    channel = connection.channel()
-    channel.queue_declare(queue=config.CONFIG['rabbitmq_queue'], durable=True)
-    try:
-        # Start listening
-        logger.log('Starting to listen')
-        sapi = tweepy.streaming.Stream(auth, CustomStreamListener(mc, channel))
-        sapi.filter(track=config.CONFIG['topics'])
-    except requests.ConnectionError as e:
-        logger.log(str(e))
+    listener = CustomStreamListener(account_config, memcache_config, rabbitmq_config, filter_config)
+    listener.start()
 
 if __name__ == '__main__':
-	main()
+	pass
 

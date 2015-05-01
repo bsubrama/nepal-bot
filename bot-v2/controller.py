@@ -18,12 +18,16 @@ import retweeter as rt
 
 # Start up 1 stream_listener, n_accounts retweeters and 1 log_listener
 def main():
-    stream_listener = Process(target=sl.main)
+    stream_listener = Process(target=sl.run,
+                              args=(config.CONFIG['accounts'].values()[0], 
+                                    config.CONFIG['memcache'],
+                                    config.CONFIG['rabbitmq'],
+                                    config.CONFIG['filters']))
     stream_listener.start()
     
     retweeters = []
     for name, account in config.CONFIG['accounts'].iteritems():
-        retweeter = Process(target=rt.run_as_process, args=(name, account['tweets_per_hour']))
+        retweeter = Process(target=rt.run, args=(name, account, config.CONFIG['rabbitmq']))
         retweeter.start()
     
     log_listener = Process(target=logger.run_log_listener_as_process)
