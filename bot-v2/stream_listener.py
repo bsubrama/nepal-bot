@@ -72,7 +72,7 @@ def main():
     logger.log('Initializing memcache client')
     mc = memcache.Client([config.CONFIG['memcache_server']], debug=0)
     
-    # Initialize pika
+    # Initialize RabbitMQ
     logger.log('Initializing RabbitMQ queue')
     connection = pika.BlockingConnection(
         pika.ConnectionParameters(host=config.CONFIG['rabbitmq_host']))

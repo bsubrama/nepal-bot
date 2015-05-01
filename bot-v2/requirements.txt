@@ -7,3 +7,5 @@
 tweepy
 python-memcached
 pika
+tornado
+mock
