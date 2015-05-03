@@ -22,10 +22,9 @@ import pickle
 
 class CustomStreamListener(tweepy.StreamListener):
 
-  def __init__(self, account_config, memcache_config, rabbitmq_config, filter_config):
+  def __init__(self, account_config, memcache_config, rabbitmq_config):
     tweepy.StreamListener.__init__(self)
     self.tweet_num = 0
-    self.filter_config = filter_config
     
     # Initialize API
     self.api = util.InitializeTwitterAPI(account_config)
@@ -76,18 +75,18 @@ class CustomStreamListener(tweepy.StreamListener):
     logger.log('Timeout...')
     return True
 
-  def start(self):
+  def start(self, filter_config):
       try:
           logger.log('Starting to listen')
           sapi = tweepy.streaming.Stream(self.auth, self)
-          sapi.filter(track=self.filter_config['topics'])
+          sapi.filter(track=filter_config['topics'])
       except requests.ConnectionError as e:
           logger.log(e)
 
 def run(account_config, memcache_config, rabbitmq_config, filter_config):
     logger.log('Initializing stream listener')
-    listener = CustomStreamListener(account_config, memcache_config, rabbitmq_config, filter_config)
-    listener.start()
+    listener = CustomStreamListener(account_config, memcache_config, rabbitmq_config)
+    listener.start(filter_config)
 
 if __name__ == '__main__':
 	pass
